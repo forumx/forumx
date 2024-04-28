@@ -18,8 +18,4 @@ public class UserValidator {
     public boolean isUsernameExist(String username) {
         return userRepository.findByUsername(username) != null;
     }
-
-    public boolean isEmailExist(String email) {
-        return userRepository.findByEmail(email) != null;
-    }
 }
