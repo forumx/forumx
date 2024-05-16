@@ -15,7 +15,6 @@ public class ThreadModel {
 
     private String content;
 
-    @JsonIncludeProperties({"id","username"})
     private UserModel user;
 
     @JsonIncludeProperties({"id","name"})

@@ -11,4 +11,6 @@ public class UserModel {
     private String name;
 
     private boolean enabled;
+
+    private String img_url;
 }

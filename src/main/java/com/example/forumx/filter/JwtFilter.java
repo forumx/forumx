@@ -4,6 +4,7 @@ import com.example.forumx.service.UserService;
 import io.jsonwebtoken.*;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -42,22 +44,23 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try{
             String jwt = getJwtFromRequest(request);
-            if(StringUtils.hasText(jwt)){
+            if(StringUtils.hasText(jwt)) {
                 String username = getUsername(jwt);
                 String role = getRole(jwt);
                 String name = getName(jwt);
+                String img = (String) Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwt).getBody().get("PICTURE");
+                if (StringUtils.hasText(username) && StringUtils.hasText(role) && StringUtils.hasText(name)) {
+                    userService.createOrUpdateUser(username, name, img);
 
-                userService.createOrUpdateUser(username, name);
+                    List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
+                        authorityList.add(new SimpleGrantedAuthority(role));
 
-                List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
-                if(StringUtils.hasText(role) && StringUtils.hasText(username)){
-                    authorityList.add(new SimpleGrantedAuthority(role));
-                }else{
-                    throw new AuthenticationCredentialsNotFoundException("Invalid access token");
+                    UserDetails userDetails = new User(username, "", authorityList);
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-                UserDetails userDetails = new User(username, "", authorityList);
-                Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }else {
+                throw new AuthenticationCredentialsNotFoundException("Invalid access token");
             }
         }catch (AuthenticationException ex){
             log.info("Could not set user authentication in security context", ex);
@@ -67,10 +70,14 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        log.info(bearerToken);
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        Cookie[] cookies = request.getCookies();
+        Cookie authCookie = cookies == null ? null : Arrays.stream(cookies).
+                filter(cookie -> cookie.getName().equals("AUTH_TOKEN"))
+                .findAny().orElse(null);
+        if(authCookie!=null) {
+            String bearerToken = authCookie.getValue();
+            log.info(bearerToken);
+            return bearerToken;
         }
         return null;
     }
