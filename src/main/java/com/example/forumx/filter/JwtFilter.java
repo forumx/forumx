@@ -9,10 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -42,9 +40,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try{
             String jwt = getJwtFromRequest(request);
-            if(StringUtils.hasText(jwt)) {
+            if (StringUtils.hasText(jwt)) {
                 String username = getUsername(jwt);
                 String role = getRole(jwt);
                 String name = getName(jwt);
@@ -53,19 +50,14 @@ public class JwtFilter extends OncePerRequestFilter {
                     userService.createOrUpdateUser(username, name, img);
 
                     List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
-                        authorityList.add(new SimpleGrantedAuthority(role));
+                    authorityList.add(new SimpleGrantedAuthority(role));
 
                     UserDetails userDetails = new User(username, "", authorityList);
                     Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-            }else {
-                throw new AuthenticationCredentialsNotFoundException("Invalid access token");
             }
-        }catch (AuthenticationException ex){
-            log.info("Could not set user authentication in security context", ex);
-            throw new com.example.forumx.exception.AuthenticationException("Authentication exception");
-        }
+
         filterChain.doFilter(request, response);
     }
 
