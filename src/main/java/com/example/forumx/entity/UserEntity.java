@@ -21,4 +21,6 @@ public class UserEntity extends TimeAuditable {
     private String username;
 
     private boolean enabled;
+
+    private String img_url;
 }
