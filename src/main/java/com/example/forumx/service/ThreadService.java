@@ -1,6 +1,5 @@
 package com.example.forumx.service;
 
-import com.example.forumx.entity.CategoryEntity;
 import com.example.forumx.entity.ThreadEntity;
 import com.example.forumx.exception.NotFoundException;
 import com.example.forumx.mapper.ThreadMapper;
@@ -55,7 +54,7 @@ public class ThreadService {
         if (userModel == null) {
             throw new NotFoundException("User does not exist");
         }
-        if (categoryValidator.isCategoryExist(threadModel.getCategory().getId())) {
+        if (!categoryValidator.isCategoryExist(threadModel.getCategory().getId())) {
             throw new NotFoundException("Category does not exist");
         }
         ThreadEntity threadEntity = threadMapper.mapThreadModelToEntity(threadModel);
