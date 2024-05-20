@@ -11,7 +11,7 @@ import java.util.Date;
 public class CommentModel {
     private Long id;
 
-    @JsonIncludeProperties({"id","username"})
+    @JsonIncludeProperties({"id","username", "img_url"})
     private UserModel user;
 
     private Long threadId;
