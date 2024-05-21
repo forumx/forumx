@@ -20,6 +20,6 @@ public class HelloApi {
         } catch (SocketException e) {
             throw new RuntimeException(e);
         }
-        return ResponseEntity.ok("Hello ip: " + ip);
+        return ResponseEntity.ok("Hello quan ip: " + ip);
     }
 }
